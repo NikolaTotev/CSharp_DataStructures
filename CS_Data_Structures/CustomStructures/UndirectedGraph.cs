@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -8,69 +9,103 @@ namespace CustomStructures
 {
     public class UndirectedGraph<T>
     {
-        public List<UndirectedGraphNode<T>> AdjecencyList { get; set; }
+        public List<UndirectedGraphNode<T>> Nodes { get; set; }
 
         public UndirectedGraph(T initialNodeData)
         {
-            UndirectedGraphNode<T> initialNode = new UndirectedGraphNode<T>(initialNodeData);
-            AdjecencyList.Add(initialNode);
+            UndirectedGraphNode<T> initialNode = new UndirectedGraphNode<T>(0,initialNodeData);
+            Nodes.Add(initialNode);
         }
 
         public UndirectedGraph(UndirectedGraphNode<T> initialNode)
         {
-            AdjecencyList.Add(initialNode);
+            Nodes.Add(initialNode);
         }
 
         public void AddEdge(UndirectedGraphNode<T> vertexOne, UndirectedGraphNode<T> vertexTwo)
         {
-            int v1Index = -1;
-            int v2Index = -1;
+            if (vertexOne == null) throw new ArgumentNullException(nameof(vertexOne));
+            if (vertexTwo == null) throw new ArgumentNullException(nameof(vertexTwo));
 
-            if (AdjecencyList.Contains(vertexOne))
+            int v1Index = Nodes.IndexOf(vertexOne);
+            int v2Index = Nodes.IndexOf(vertexTwo);
+
+            if (v1Index == -1)
             {
-                v1Index = AdjecencyList.IndexOf(vertexOne);
+                Nodes.Add(vertexOne);
             }
 
-            if (AdjecencyList.Contains(vertexTwo))
+            if (v2Index == -1)
             {
-                v2Index = AdjecencyList.IndexOf(vertexTwo);
+                Nodes.Add(vertexTwo);
             }
 
-            if (v1Index == -1 && v2Index != -1)
+            vertexTwo.AddNeighbor(vertexOne);
+        }
+
+        public void RemoveEdge(UndirectedGraphNode<T> vertexOne, UndirectedGraphNode<T> vertexTwo)
+        {
+            int v1Index = Nodes.IndexOf(vertexOne);
+            int v2Index = Nodes.IndexOf(vertexTwo);
+
+            vertexTwo.RemoveNeighbor(vertexOne);
+        }
+
+        public void RemoveEdgeAndVertex(UndirectedGraphNode<T> vertexOne, UndirectedGraphNode<T> vertexTwo)
+        {
+            int v1Index = Nodes.IndexOf(vertexOne);
+            int v2Index = Nodes.IndexOf(vertexTwo);
+
+            if (v1Index == -1)
             {
-                AdjecencyList.Add(vertexOne);
-                vertexTwo.AddNeighbor(vertexOne);
+                Nodes.Remove(vertexOne);
+            }
+
+            if (v2Index == -1)
+            {
+                Nodes.Remove(vertexTwo);
+            }
+
+            vertexTwo.RemoveNeighbor(vertexOne);
+        }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="inspectFunc">Must return true if the search is completed and no more nodes need to be checked</param>
+        public void Dfs(Func<UndirectedGraphNode<T>, bool> inspectFunc)
+        {
+            if (Nodes.Count == 0)
+            {
                 return;
             }
+            bool[] visited = new bool[Nodes.Count];
+            visited.Initialize();
 
-            if (v2Index == -1 && v1Index != -1)
+            InternalDfs(visited, Nodes[0], inspectFunc);
+        }
+        private void InternalDfs (bool[] visited, UndirectedGraphNode<T> node, Func<UndirectedGraphNode<T>, bool> inspectFunc)
+        {
+            int nodeId = Nodes.IndexOf(node);
+            visited[nodeId] = true;
+
+            if (inspectFunc(node))
             {
-                AdjecencyList.Add(vertexTwo);
-                vertexOne.AddNeighbor(vertexTwo);
                 return;
             }
-
-            if (v1Index == -1 && v2Index == -1)
+            foreach (UndirectedGraphNode<T> neighbor in node.GetNeighbors())
             {
-                AdjecencyList.Add(vertexOne);
-                AdjecencyList.Add(vertexTwo);
-
-                vertexOne.AddNeighbor(vertexTwo);
-                vertexTwo.AddNeighbor(vertexOne);
-                return;
-            }
-
-            if (v1Index != -1 && v2Index != -1)
-            {
-                if (!vertexOne.Neighbors.Contains(vertexTwo))
+                if (!visited[Nodes.IndexOf(neighbor)])
                 {
-                    vertexOne.AddNeighbor(vertexTwo);
-                }
-                if (!vertexTwo.Neighbors.Contains(vertexOne))
-                {
-                    vertexTwo.AddNeighbor(vertexOne);
+                    InternalDfs(visited, neighbor, inspectFunc);
                 }
             }
+        }
+
+        public void Bfs()
+        {
+
         }
     }
 }
