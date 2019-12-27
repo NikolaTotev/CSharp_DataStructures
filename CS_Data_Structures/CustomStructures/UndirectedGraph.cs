@@ -13,7 +13,7 @@ namespace CustomStructures
 
         public UndirectedGraph(T initialNodeData)
         {
-            UndirectedGraphNode<T> initialNode = new UndirectedGraphNode<T>(0,initialNodeData);
+            UndirectedGraphNode<T> initialNode = new UndirectedGraphNode<T>(initialNodeData);
             Nodes.Add(initialNode);
         }
 
@@ -71,7 +71,7 @@ namespace CustomStructures
 
 
         /// <summary>
-        /// 
+        /// Generic DFS function. Can be used to solve any problem that requires DFS, just plug in the inspectionFunc.
         /// </summary>
         /// <param name="inspectFunc">Must return true if the search is completed and no more nodes need to be checked</param>
         public void Dfs(Func<UndirectedGraphNode<T>, bool> inspectFunc)
@@ -83,9 +83,12 @@ namespace CustomStructures
             bool[] visited = new bool[Nodes.Count];
             visited.Initialize();
 
-            InternalDfs(visited, Nodes[0], inspectFunc);
+            foreach (var node in Nodes)
+            {
+                InternalDfs(visited, node, inspectFunc);
+            }
         }
-        private void InternalDfs (bool[] visited, UndirectedGraphNode<T> node, Func<UndirectedGraphNode<T>, bool> inspectFunc)
+        private void InternalDfs(bool[] visited, UndirectedGraphNode<T> node, Func<UndirectedGraphNode<T>, bool> inspectFunc)
         {
             int nodeId = Nodes.IndexOf(node);
             visited[nodeId] = true;
@@ -103,7 +106,12 @@ namespace CustomStructures
             }
         }
 
-        public void Bfs(Func<UndirectedGraphNode<T>, bool> inspectFunc,int startId = 0)
+        /// <summary>
+        /// Generic BFS function. Can be used to solve any problem that requires BFS, just plug in the inspectionFunc.
+        /// </summary>
+        /// <param name="inspectFunc">Must return true if the search is completed and no more nodes need to be checked</param>
+        /// <param name="startId">Starting node, by default it is 0.</param>
+        public void Bfs(Func<UndirectedGraphNode<T>, bool> inspectFunc,)
         {
             if (Nodes.Count == 0)
             {
@@ -113,23 +121,31 @@ namespace CustomStructures
             visited.Initialize();
 
             Queue<UndirectedGraphNode<T>> nodeQueue = new Queue<UndirectedGraphNode<T>>();
-            nodeQueue.Enqueue(Nodes[startId]);
-            visited[startId] = true;
-            while (nodeQueue.Count != 0)
+            foreach (var undirectedGraphNode in Nodes)
             {
-                UndirectedGraphNode<T> currentNode = nodeQueue.Dequeue();
-
-                if (inspectFunc(currentNode))
+                int currentNodeId = Nodes.IndexOf(undirectedGraphNode);
+                if (!visited[currentNodeId])
                 {
-                    return;
-                }
-
-                foreach (UndirectedGraphNode<T> neighbor in currentNode.GetNeighbors())
-                {
-                    if (!visited[Nodes.IndexOf(neighbor)])
+                    nodeQueue.Enqueue(undirectedGraphNode);
+                    visited[currentNodeId] = true;
+                    while (nodeQueue.Count != 0)
                     {
-                        visited[Nodes.IndexOf(neighbor)] = true;
-                        nodeQueue.Enqueue(neighbor);
+                        UndirectedGraphNode<T> currentNode = nodeQueue.Dequeue();
+
+                        if (inspectFunc(currentNode))
+                        {
+                            return;
+                        }
+
+                        foreach (UndirectedGraphNode<T> neighbor in currentNode.GetNeighbors())
+                        {
+                            if (!visited[Nodes.IndexOf(neighbor)])
+                            {
+                                visited[Nodes.IndexOf(neighbor)] = true;
+                                nodeQueue.Enqueue(neighbor);
+                            }
+                        }
+
                     }
                 }
 
