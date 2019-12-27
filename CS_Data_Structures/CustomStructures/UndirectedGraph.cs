@@ -103,9 +103,37 @@ namespace CustomStructures
             }
         }
 
-        public void Bfs()
+        public void Bfs(Func<UndirectedGraphNode<T>, bool> inspectFunc,int startId = 0)
         {
+            if (Nodes.Count == 0)
+            {
+                return;
+            }
+            bool[] visited = new bool[Nodes.Count];
+            visited.Initialize();
 
+            Queue<UndirectedGraphNode<T>> nodeQueue = new Queue<UndirectedGraphNode<T>>();
+            nodeQueue.Enqueue(Nodes[startId]);
+            visited[startId] = true;
+            while (nodeQueue.Count != 0)
+            {
+                UndirectedGraphNode<T> currentNode = nodeQueue.Dequeue();
+
+                if (inspectFunc(currentNode))
+                {
+                    return;
+                }
+
+                foreach (UndirectedGraphNode<T> neighbor in currentNode.GetNeighbors())
+                {
+                    if (!visited[Nodes.IndexOf(neighbor)])
+                    {
+                        visited[Nodes.IndexOf(neighbor)] = true;
+                        nodeQueue.Enqueue(neighbor);
+                    }
+                }
+
+            }
         }
     }
 }
