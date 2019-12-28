@@ -9,64 +9,81 @@ namespace CustomStructures
 {
     public class UndirectedGraph<T>
     {
-        public List<UndirectedGraphNode<T>> Nodes { get; set; }
+        public Dictionary<T, UndirectedGraphNode<T>> Nodes { get; set; }
+        public int NumberOfComponents { get; set; }
 
         public UndirectedGraph(T initialNodeData)
         {
+            Nodes = new Dictionary<T, UndirectedGraphNode<T>>();
             UndirectedGraphNode<T> initialNode = new UndirectedGraphNode<T>(initialNodeData);
-            Nodes.Add(initialNode);
+            Nodes.Add(initialNodeData, initialNode);
+            NumberOfComponents = 0;
         }
 
-        public UndirectedGraph(UndirectedGraphNode<T> initialNode)
-        {
-            Nodes.Add(initialNode);
-        }
-
-        public void AddEdge(UndirectedGraphNode<T> vertexOne, UndirectedGraphNode<T> vertexTwo)
+        public void AddEdge(T vertexOne, T vertexTwo)
         {
             if (vertexOne == null) throw new ArgumentNullException(nameof(vertexOne));
             if (vertexTwo == null) throw new ArgumentNullException(nameof(vertexTwo));
 
-            int v1Index = Nodes.IndexOf(vertexOne);
-            int v2Index = Nodes.IndexOf(vertexTwo);
+            bool v2Index = Nodes.ContainsKey(vertexTwo);
+            bool v1Index = Nodes.ContainsKey(vertexOne);
 
-            if (v1Index == -1)
+            if (!v1Index)
             {
-                Nodes.Add(vertexOne);
+                UndirectedGraphNode<T> nodeOne = new UndirectedGraphNode<T>(vertexOne);
+                Nodes.Add(vertexOne, nodeOne);
             }
 
-            if (v2Index == -1)
+            if (!v2Index)
             {
-                Nodes.Add(vertexTwo);
+
+                UndirectedGraphNode<T> nodeTwo = new UndirectedGraphNode<T>(vertexTwo);
+                Nodes.Add(vertexTwo, nodeTwo);
             }
 
-            vertexTwo.AddNeighbor(vertexOne);
+
+            Nodes[vertexTwo].AddNeighbor(Nodes[vertexOne]);
         }
 
-        public void RemoveEdge(UndirectedGraphNode<T> vertexOne, UndirectedGraphNode<T> vertexTwo)
+        public void AddVertex(T vertex)
         {
-            int v1Index = Nodes.IndexOf(vertexOne);
-            int v2Index = Nodes.IndexOf(vertexTwo);
+            bool v2Index = Nodes.ContainsKey(vertex);
 
-            vertexTwo.RemoveNeighbor(vertexOne);
+            if (!v2Index)
+            {
+                UndirectedGraphNode<T> newNode = new UndirectedGraphNode<T>(vertex);
+                Nodes.Add(vertex, newNode);
+            }
         }
 
-        public void RemoveEdgeAndVertex(UndirectedGraphNode<T> vertexOne, UndirectedGraphNode<T> vertexTwo)
+        public void RemoveEdge(T vertexOne, T vertexTwo)
         {
-            int v1Index = Nodes.IndexOf(vertexOne);
-            int v2Index = Nodes.IndexOf(vertexTwo);
+            bool v2Index = Nodes.ContainsKey(vertexTwo);
+            bool v1Index = Nodes.ContainsKey(vertexOne);
 
-            if (v1Index == -1)
+            if (v1Index && v2Index)
+            {
+                Nodes[vertexTwo].RemoveNeighbor(Nodes[vertexOne]);
+            }
+
+        }
+
+        public void RemoveEdgeAndVertex(T vertexOne, T vertexTwo)
+        {
+            bool v2Index = Nodes.ContainsKey(vertexTwo);
+            bool v1Index = Nodes.ContainsKey(vertexOne);
+
+            if (v1Index)
             {
                 Nodes.Remove(vertexOne);
             }
 
-            if (v2Index == -1)
+            if (v2Index)
             {
                 Nodes.Remove(vertexTwo);
             }
 
-            vertexTwo.RemoveNeighbor(vertexOne);
+            Nodes[vertexTwo].RemoveNeighbor(Nodes[vertexOne]);
         }
 
 
@@ -76,21 +93,22 @@ namespace CustomStructures
         /// <param name="inspectFunc">Must return true if the search is completed and no more nodes need to be checked</param>
         public void Dfs(Func<UndirectedGraphNode<T>, bool> inspectFunc)
         {
-            if (Nodes.Count == 0)
+            List<UndirectedGraphNode<T>> nodes = Nodes.Values.ToList();
+            if (nodes.Count == 0)
             {
                 return;
             }
-            bool[] visited = new bool[Nodes.Count];
+            bool[] visited = new bool[nodes.Count];
             visited.Initialize();
 
-            foreach (var node in Nodes)
+            foreach (var node in nodes)
             {
-                InternalDfs(visited, node, inspectFunc);
+                InternalDfs(nodes, visited, node, inspectFunc);
             }
         }
-        private void InternalDfs(bool[] visited, UndirectedGraphNode<T> node, Func<UndirectedGraphNode<T>, bool> inspectFunc)
+        private void InternalDfs(List<UndirectedGraphNode<T>> nodes, bool[] visited, UndirectedGraphNode<T> node, Func<UndirectedGraphNode<T>, bool> inspectFunc)
         {
-            int nodeId = Nodes.IndexOf(node);
+            int nodeId = nodes.IndexOf(node);
             visited[nodeId] = true;
 
             if (inspectFunc(node))
@@ -99,9 +117,9 @@ namespace CustomStructures
             }
             foreach (UndirectedGraphNode<T> neighbor in node.GetNeighbors())
             {
-                if (!visited[Nodes.IndexOf(neighbor)])
+                if (!visited[nodes.IndexOf(neighbor)])
                 {
-                    InternalDfs(visited, neighbor, inspectFunc);
+                    InternalDfs(nodes, visited, neighbor, inspectFunc);
                 }
             }
         }
@@ -111,37 +129,43 @@ namespace CustomStructures
         /// </summary>
         /// <param name="inspectFunc">Must return true if the search is completed and no more nodes need to be checked</param>
         /// <param name="startId">Starting node, by default it is 0.</param>
-        public void Bfs(Func<UndirectedGraphNode<T>, bool> inspectFunc,)
+        public void Bfs(Func<UndirectedGraphNode<T>, bool> inspectFunc, bool countComponents)
         {
-            if (Nodes.Count == 0)
+            List<UndirectedGraphNode<T>> nodes = Nodes.Values.ToList();
+            if (nodes.Count == 0)
             {
                 return;
             }
-            bool[] visited = new bool[Nodes.Count];
-            visited.Initialize();
 
+            bool[] visited = new bool[nodes.Count];
+            visited.Initialize();
             Queue<UndirectedGraphNode<T>> nodeQueue = new Queue<UndirectedGraphNode<T>>();
-            foreach (var undirectedGraphNode in Nodes)
+            foreach (var undirectedGraphNode in nodes)
             {
-                int currentNodeId = Nodes.IndexOf(undirectedGraphNode);
+
+                int currentNodeId = nodes.IndexOf(undirectedGraphNode);
                 if (!visited[currentNodeId])
                 {
+                    if (countComponents)
+                    {
+                        NumberOfComponents++;
+                    }
                     nodeQueue.Enqueue(undirectedGraphNode);
                     visited[currentNodeId] = true;
                     while (nodeQueue.Count != 0)
                     {
                         UndirectedGraphNode<T> currentNode = nodeQueue.Dequeue();
 
-                        if (inspectFunc(currentNode))
+                        if (inspectFunc != null && inspectFunc(currentNode))
                         {
                             return;
                         }
 
                         foreach (UndirectedGraphNode<T> neighbor in currentNode.GetNeighbors())
                         {
-                            if (!visited[Nodes.IndexOf(neighbor)])
+                            if (!visited[nodes.IndexOf(neighbor)])
                             {
-                                visited[Nodes.IndexOf(neighbor)] = true;
+                                visited[nodes.IndexOf(neighbor)] = true;
                                 nodeQueue.Enqueue(neighbor);
                             }
                         }
@@ -150,6 +174,12 @@ namespace CustomStructures
                 }
 
             }
+        }
+
+        public int CountComponents()
+        {
+            Bfs(null, true);
+            return NumberOfComponents;
         }
     }
 }

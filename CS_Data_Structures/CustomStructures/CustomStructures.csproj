@@ -44,7 +44,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="UndirectedGraph.cs" />
     <Compile Include="UndirectedGraphNode.cs" />
-    <Compile Include="UniqueIntGraph.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
