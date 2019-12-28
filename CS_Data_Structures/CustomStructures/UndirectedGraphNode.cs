@@ -11,7 +11,6 @@ namespace CustomStructures
     {
         private readonly List<UndirectedGraphNode<T>> m_Neighbors;
         public T Data { get; set; }
-        public int Id { get; }
         public UndirectedGraphNode(T data)
         {
 
@@ -24,7 +23,7 @@ namespace CustomStructures
             return m_Neighbors.AsReadOnly();
         }
 
-        public UndirectedGraphNode(int id, UndirectedGraphNode<T> initialNeighbor, T data) : this(data)
+        public UndirectedGraphNode(UndirectedGraphNode<T> initialNeighbor, T data) : this(data)
         {
             initialNeighbor.m_Neighbors.Add(this);
         }

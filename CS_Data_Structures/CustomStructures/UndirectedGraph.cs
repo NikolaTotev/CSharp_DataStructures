@@ -103,7 +103,10 @@ namespace CustomStructures
 
             foreach (var node in nodes)
             {
-                InternalDfs(nodes, visited, node, inspectFunc);
+                if (!visited[nodes.IndexOf(node)])
+                {
+                    InternalDfs(nodes, visited, node, inspectFunc);
+                }
             }
         }
         private void InternalDfs(List<UndirectedGraphNode<T>> nodes, bool[] visited, UndirectedGraphNode<T> node, Func<UndirectedGraphNode<T>, bool> inspectFunc)
