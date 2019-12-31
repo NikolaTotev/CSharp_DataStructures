@@ -56,73 +56,38 @@ namespace CustomStructures
             }
         }
 
-        public void RemoveEdge(T vertexOne, T vertexTwo)
-        {
-            bool v2Index = Nodes.ContainsKey(vertexTwo);
-            bool v1Index = Nodes.ContainsKey(vertexOne);
-
-            if (v1Index && v2Index)
-            {
-                Nodes[vertexTwo].RemoveNeighbor(Nodes[vertexOne]);
-            }
-
-        }
-
-        public void RemoveEdgeAndVertex(T vertexOne, T vertexTwo)
-        {
-            bool v2Index = Nodes.ContainsKey(vertexTwo);
-            bool v1Index = Nodes.ContainsKey(vertexOne);
-
-            if (v1Index)
-            {
-                Nodes.Remove(vertexOne);
-            }
-
-            if (v2Index)
-            {
-                Nodes.Remove(vertexTwo);
-            }
-
-            Nodes[vertexTwo].RemoveNeighbor(Nodes[vertexOne]);
-        }
-
-
         /// <summary>
         /// Generic DFS function. Can be used to solve any problem that requires DFS, just plug in the inspectionFunc.
         /// </summary>
         /// <param name="inspectFunc">Must return true if the search is completed and no more nodes need to be checked</param>
         public void Dfs(Func<UndirectedGraphNode<T>, bool> inspectFunc)
         {
-            List<UndirectedGraphNode<T>> nodes = Nodes.Values.ToList();
-            if (nodes.Count == 0)
+            if (Nodes.Count == 0)
             {
                 return;
             }
-            bool[] visited = new bool[nodes.Count];
-            visited.Initialize();
 
-            foreach (var node in nodes)
+
+            foreach (var node in Nodes)
             {
-                if (!visited[nodes.IndexOf(node)])
+                if (node.Value.IsVisited)
                 {
-                    InternalDfs(nodes, visited, node, inspectFunc);
+                    InternalDfs(Nodes, node.Value, inspectFunc);
                 }
             }
         }
-        private void InternalDfs(List<UndirectedGraphNode<T>> nodes, bool[] visited, UndirectedGraphNode<T> node, Func<UndirectedGraphNode<T>, bool> inspectFunc)
+        private void InternalDfs(Dictionary<T, UndirectedGraphNode<T>> nodes, UndirectedGraphNode<T> node, Func<UndirectedGraphNode<T>, bool> inspectFunc)
         {
-            int nodeId = nodes.IndexOf(node);
-            visited[nodeId] = true;
 
             if (inspectFunc(node))
             {
                 return;
             }
-            foreach (UndirectedGraphNode<T> neighbor in node.GetNeighbors())
+            foreach (var neighbor in node.GetNeighbors())
             {
-                if (!visited[nodes.IndexOf(neighbor)])
+                if (!neighbor.Value.IsVisited)
                 {
-                    InternalDfs(nodes, visited, neighbor, inspectFunc);
+                    InternalDfs(nodes, neighbor.Value, inspectFunc);
                 }
             }
         }
@@ -134,27 +99,23 @@ namespace CustomStructures
         /// <param name="startId">Starting node, by default it is 0.</param>
         public void Bfs(Func<UndirectedGraphNode<T>, bool> inspectFunc, bool countComponents)
         {
-            List<UndirectedGraphNode<T>> nodes = Nodes.Values.ToList();
-            if (nodes.Count == 0)
+            if (Nodes.Count == 0)
             {
                 return;
             }
 
-            bool[] visited = new bool[nodes.Count];
-            visited.Initialize();
             Queue<UndirectedGraphNode<T>> nodeQueue = new Queue<UndirectedGraphNode<T>>();
-            foreach (var undirectedGraphNode in nodes)
+            foreach (var undirectedGraphNode in Nodes)
             {
 
-                int currentNodeId = nodes.IndexOf(undirectedGraphNode);
-                if (!visited[currentNodeId])
+                if (!undirectedGraphNode.Value.IsVisited)
                 {
                     if (countComponents)
                     {
                         NumberOfComponents++;
                     }
-                    nodeQueue.Enqueue(undirectedGraphNode);
-                    visited[currentNodeId] = true;
+                    nodeQueue.Enqueue(undirectedGraphNode.Value);
+                    undirectedGraphNode.Value.IsVisited = true;
                     while (nodeQueue.Count != 0)
                     {
                         UndirectedGraphNode<T> currentNode = nodeQueue.Dequeue();
@@ -164,18 +125,17 @@ namespace CustomStructures
                             return;
                         }
 
-                        foreach (UndirectedGraphNode<T> neighbor in currentNode.GetNeighbors())
+                        foreach (var neighbor in currentNode.GetNeighbors())
                         {
-                            if (!visited[nodes.IndexOf(neighbor)])
+                            if (!neighbor.Value.IsVisited)
                             {
-                                visited[nodes.IndexOf(neighbor)] = true;
-                                nodeQueue.Enqueue(neighbor);
+                                neighbor.Value.IsVisited = true;
+                                nodeQueue.Enqueue(neighbor.Value);
                             }
                         }
 
                     }
                 }
-
             }
         }
 
