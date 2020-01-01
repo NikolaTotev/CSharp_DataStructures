@@ -141,7 +141,7 @@ namespace CustomStructures
             }
         }
 
-        public void FindPath(T source)
+        public void FindPath(T source, Func<SortedDictionary<WeightedUndirectedGraphNode<T, int>,int>,void> resultHandler)
         {
             WeightedUndirectedGraphNode<T, int> sourceNode = Nodes[source];
             SortedDictionary<WeightedUndirectedGraphNode<T, int>, int> distances = new SortedDictionary<WeightedUndirectedGraphNode<T, int>, int>();
@@ -158,9 +158,15 @@ namespace CustomStructures
 
                 foreach (var neighbor in currentVertex.GetNeighbors())
                 {
-                    int alternativeDist = distances[neighbor.Value.ConnectionNeighbor] + neighbor.Value.ConnectionWeight;
+                    int alternativeDist = distances[currentVertex] + neighbor.Value.ConnectionWeight;
+                    if (alternativeDist < distances[neighbor.Value.ConnectionNeighbor])
+                    {
+                        distances[neighbor.Value.ConnectionNeighbor] = alternativeDist;
+                    }
                 }
             }
+
+            resultHandler();
 
         }
 
