@@ -21,7 +21,7 @@ namespace CustomStructures
 
         public DirectedGraphNode(DirectedGraphNode<T> initialNeighbor, T data) : this(data)
         {
-            initialNeighbor.m_Neighbors.Add(this);
+           m_Neighbors.Add(initialNeighbor);
         }
 
 

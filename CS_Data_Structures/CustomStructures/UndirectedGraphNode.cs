@@ -27,7 +27,7 @@ namespace CustomStructures
 
         public UndirectedGraphNode(UndirectedGraphNode<T> initialNeighbor, T data) : this(data)
         {
-            initialNeighbor.m_Neighbors.Add(data, this);
+            initialNeighbor.AddNeighbor(this);
         }
 
         public void AddNeighbor(UndirectedGraphNode<T> neighborToAdd)
