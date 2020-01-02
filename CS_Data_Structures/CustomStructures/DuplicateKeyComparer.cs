@@ -1,4 +1,7 @@
-﻿namespace CustomStructures
+﻿using System;
+using System.Collections.Generic;
+
+namespace CustomStructures
 {
     public class DuplicateKeyComparer
     {
@@ -25,5 +28,5 @@
 
             #endregion
         }
-    }
+    
 }
